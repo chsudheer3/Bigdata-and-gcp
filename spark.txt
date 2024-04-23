@@ -1,0 +1,414 @@
+Apache Spark:
+
+> Spark is lightening fast distributed computing medium (spark replaces hadoop)
+> cost wise expensive and fast processesing than hadoop
+> RAM based data transfer in spark but in hadoop hard-drive based data transfer
+> RAM is faster than hard-drive, so data transfer is faster in spark
+> hadoop doesn't support for iterative workloads or approach but spark supports iterative approach
+> spark supports both batch and stream processing where as hadoop supports only batch processing
+> spark supports hadoop file management system (HDFS)
+ 
+Spark Components:
+
+> spark core : fundamental and basic execution engine
+> spark sql : higher level API that is on top of spark core, it deals with structured data
+> spark streaming : higher level API that is on top of spark core, it deals with streaming processing framework
+> spark graphics : it deals with graphical
+> spark R : it supports R programmming language
+
+Spark core:
+
+> To work on spark, in python idle
+> run this command : pip install pyspark
+> databricks: provides free handson on spark url : https://www.databricks.com/try-databricks#account
+> use community edition in databricks
+
+ *RDD:
+     > spark will deal the data in the format of RDD (re-silient distributed dataset)
+     > resilient means fault tolerance, distributed means data will be available in multiple machines
+     > RDD is distributed collection of data that can be operated in parallel.
+     > RDD is immutable and partition across the cluster, allowing for efficient distributed processing
+ *DAG:
+     > Distributed Acyclic Graph
+     > it is a logical representation of the logical execution plan of a spark application.
+     > It captures the sequence of transformations and actions applied to distributed datasets(RDD) to achieve desired computation
+     > it is 'directed' because transformation flow from one RDD to another, forming a directed graph which is 'acyclic' --- there are no cycles in the graph.
+
+> The first thing a Spark program must do is to create a SparkContext object, which tells Spark how to access a cluster. 
+> To create a SparkContext you first need to build a SparkConf object that contains information about your application.
+
+# Databricks notebook source
+import pyspark
+ 
+from pyspark import SparkContext
+ 
+gcp = SparkContext.getOrCreate()
+ 
+print(gcp)
+ 
+print(type(gcp))
+ 
+data = [1,2,3,4,5,6,7,8,9,10]
+ 
+#create RDD
+gcprdd = gcp.parallelize(data)
+ 
+print(gcprdd)
+ 
+gcprdd.collect()
+
+#new data
+ 
+data1 = [1,2,3,4,5,6,7,8,9,10]
+data2 = {1,2,3,4,5,6,7,8,9,10}
+data3 = (1,2,3,4,5,6,7,8,9,10)
+data4 = {"name":"karthick"}
+ 
+rdd1 = gcp.parallelize(data1)
+rdd2 = gcp.parallelize(data2)
+rdd3 = gcp.parallelize(data3)
+rdd4 = gcp.parallelize(data4)
+ 
+rdd1.collect()
+ 
+rdd2.collect()
+ 
+rdd3.collect()
+ 
+rdd4.collect()
+ 
+rdd5 = rdd1.map(lambda x: x+10)
+# map is lazy command,collect is action command
+rdd5.collect()
+
+15/3/2023
+
+> create a new table in seperate tab in databricks after creating cluster
+> then upload textfile into new table section
+> after uploading into table, you will get a textfile path copy that
+> In Notebook, write the following code:
+
+>>import pyspark
+>>from pyspark import SparkContext,SparkConf
+>>sc = SparkContext.getOrCreate()
+>>text = sc.textFile('/FileStore/tables/sample1.txt')
+>>text.collect() 
+> then it will show text file contents in a list
+>>t=text.map(lambda x:x.split(' '))
+> it will give textfile contents as list of lists
+
+> 'parallelize and textFile' methods are used to create RDD (parallelize - in memeory collection, textFile - reading data from textfiles in hdfs or local)
+>  map is a transformation that passes each dataset element through a function and returns a new RDD representing the results.
+> https://spark.apache.org/docs/latest/rdd-programming-guide.html for spark transformation techniques RDD programming guide
+> variable.count() - gives number of lines in a file
+> Spark’s API relies heavily on passing functions in the driver program to run on the cluster. There are three recommended ways to do this:
+  1. Lambda expressions, for simple functions that can be written as an expression. (Lambdas do not support multi-statement functions or statements that do not return a value.)
+  2. Local defs inside the function calling into Spark, for longer code.
+  3.Top-level functions in a module.
+> for example creating local function and passing function to map function as follows:
+  """MyScript.py"""
+*if __name__ == "__main__":
+    def myFunc(s):
+        words = s.split(" ")
+        return len(words)
+
+    sc = SparkContext(...)
+    sc.textFile("file.txt").map(myFunc)
+
+Transformations:
+
+> Map Transformations with strings and numbers:
+  > applies for each and every element of a dataset
+
+> Filter Transformations: 
+  > work on true or false condition function.
+  > we give function in filter for a rdd, the values which satisfies function is stored in new rdd.
+  > ex: rdd=sc.textFile('path of the csv or txt file')
+        def con(x):
+            if x=='Male':
+               return True
+            else:
+               return False
+        rdd1=rdd.filter(con)
+        rdd1.count() --- gives no.of males
+  > we can implement lambda also as follows
+  > rdd2=rdd.filter(lambda x: (x.startswith('Male') or x.startswith('Female'))
+  > rdd2.count() --- gives total no.of males and females
+
+> group by & reduce by keys transformations will give same output for a input:
+  > groupByKey(): groups values by key and returns an iterable collection of values for each key.
+  > reduceByKey(): combines values by key using a reduction lambda function and returns a single value per key.
+  * reduceByKey() is more efficient as it can performs on large data and aids for parallel processing
+  > sortByKey(): > It sorts the RDD based on the keys in ascending order by default.
+                > ascending: Set to True (default) for ascending order or False for descending order.
+                > numPartitions: Specify the number of partitions for the resulting RDD (optional).
+                > keyfunc: A function that extracts the key from each element
+
+> distinct & count by Transformations
+  > countByValue(): transformation operation that returns the count of each unique value in a dataset
+  > countByKey(): transformation operation that returns the count of each unique key in a dataset
+  * both countByValue and countByKey returns the result as a python dictionary
+
+> difference between map and flatmap:
+  > single output in map, multiple output in flatmap for a single input
+  > one to one relationship b/w i/p and o/p in map, one to many and one to one relationships in flat map
+
+* In Apache Spark, RDD partition is the logical division of data across the node of cluster 
+* partition is invent of parallelism in spark
+* each partition can be perform independently on different working nodes
+* The no.of partitions in RDD determines the degree of parallelism and effects efficiency of distributed computing
+* To manage these partitions in RDD:
+  > Coalesce: decreases the no.of partitions
+  > Re-partition: Increases the no.of partitions
+  >>rdd2=rdd.repartition(4) ----- if rdd has 2 partitions,then it will increase to 4 partitions
+  >>rdd3=rdd.coalesce(1) ------ if rdd has 2 partitions,then it will decrease to 1 partitions
+  >>rdd2.getNumPartitions() ----- returns no.of partitions
+> To store result as a file, use the below command:
+>>rdd2.saveAsTextFile('give path of the file in databricks(DBFS) where result to be stored')
+* refer student data spark word document for the use of above transformations
+
+> Spark Sql:
+ 
+> It is mainly to deal with data which is in tables
+> To support spark sql, we have two API's
+  > Data frame: it can work with sql or it can work with its own transformation functions
+  > Data sets: Custom Transformations,High Level API
+> 'spark session' will be the driver context which will use for the cluster level communication
+
+* commands are:
+
+>>import pyspark.sql
+>>from pyspark.sql import SparkSession
+>>from pyspark.sql.functions import col,select
+>>spark=SparkSession.builder.getOrCreate()
+* Data frame
+>>df=spark.read.option("header",True).csv('databrick file path')
+                           or
+>>df=spark.read.options(header='True',inferSchema='True',delimiter=',').csv("databricks file path')
+* inferSchema clears data type errors
+>>df.show()
+>>df.count() --- No .of. rows
+>>df.show(100)
+>>print(df)
+>>print(type(df)) --- it shows dataframe
+>>df.printSchema()  --- prints schema or describe table
+>>df1=df.select("column_names") ----- we can store selected column values in new dataframe
+* No case sensitivity for column names
+>>df.select(df.column_name1,df.column_name2)
+* here column names are case sensitive
+
+* To use sql commands in dataframe
+>>df.createOrReplaceTempView('tablename ex: office')
+>>spark.sql('select column_names,count(*) from tablename group by column_names').show()
+>>df.groupBy("column_names").count().show()
+
+> you can create a custom schema and type conversion from int to string viceversa only for columns of a table using struct type:
+>>from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+>>schema = StructType([
+                    StructField("age", IntegerType(), True),
+                    StructField("gender", StringType(), True),
+                    StructField("name", StringType(), True),
+                    StructField("course", StringType(), True),
+                    StructField("roll", StringType(), True),
+                    StructField("marks", IntegerType(), True),
+                    StructField("email", StringType(), True)
+                    ])
+>>df=spark.read.options(header='True').schema(schema).csv('data bricks file path')
+
+* we can create our own table wih our schema and values by creating data frame as follows:
+>>pyspark import pyspark.sq.DataFrame
+>>simpleData = [("James","Sales","NY",90000,34,10000),
+                ("Michael","Sales","NY",86000,56,20000),
+                ("Robert","Sales","CA",81000,30,23000),
+                ("Maria","Finance","CA",90000,24,23000),
+                ("Raman","Finance","CA",99000,40,24000),
+                ("Scott","Finance","NY",83000,36,19000),
+               ]
+>>schema = ["employee_name","department","state","salary","age","bonus"]
+>>df = spark.createDataFrame(data=simpleData, schema = schema)
+>>df.printSchema()
+>>df.show(truncate=False)
+
+> DataFrames 'withcolumn' command:
+
+  > we can do type casting or transform for entire column
+  > ex:>>from pyspark.sql import SparkSession
+       >>from pyspark.sql.functions import col, lit
+       >>spark = SparkSession.builder.appName("Spark DataFrames").getOrCreate()
+       >>df = spark.read.options(header='True', inferSchema='True').csv('/FileStore/tables/StudentData.csv')
+       >>df1=df.withColumn("newcolumn",col(existing_column)+10)
+       >>df2=df.withColumn("newcolumn",col(existing_column).cast("String"))
+  * we can update existing column or we can create new column in the table
+  >>df = df.withColumn("marks", col('marks') + 10) --- existing column will be updated
+  >>df = df.withColumn("aggregated marks", col('marks') - 10) --- new column will be created as you mention new column name
+  >>df = df.withColumn("name",lit("USA")) ---lit is used to change name column values to USA
+  >>df = df.withColumn("marks", col("marks") - 10).withColumn("updated marks", col("marks") + 20).withColumn("Country", lit("USA"))
+  >>df1= df.withColumnRenamed("existingcolumnname","newcolumnname") --- it used to rename the column name
+  >>df = df.withColumn("total_marks", lit(120)) --- create new column total_marks and all values assign to 120 
+  >>df = df.withColumn("average", (col("marks") / col ("total_marks"))*100 ) --- we can calculate avg and place it in new column average 
+
+> DataFrames 'Filter' command
+
+  > filter is used to apply transformations on table
+  > there are different types of conditions we use filter as follows:
+    >>from pyspark.sql import SparkSession
+    >>from pyspark.sql.functions import col, lit
+    >>spark = SparkSession.builder.appName("Spark DataFrames").getOrCreate()
+    >>df = spark.read.options(header='True', inferSchema='True').csv('/FileStore/tables/StudentData.csv')
+    >>df.show()
+    * we can access column using col keyword or dot operator as df.columnname
+    >>df.filter(df.course == "DB").show() --- it prints all rows which course as 'DB'
+    >>df.filter(col("course") == "DB").show()
+    >>df.filter( (df.course == "DB") & (df.marks > 50) ).show()
+    >>courses = ["DB", "Cloud", "OOP", "DSA"]
+    >>df.filter(df.course.isin(courses)).show() --- isin keyword is used to grab rows whose course names are in courses list
+    >>df.filter(df.course.startswith("DS")).show()
+    >>df.filter(df.name.endswith("se")).show()
+    >>df.filter(df.name.contains("se")).show()
+    >>df.filter(df.name.like('%s%e%')).show()
+
+> 'dropDuplicates" is a keyword which drops duplicates according to mentioned columns
+   >>df.dropDuplicates(["column_name1","column_name2"]).show()
+
+> 'distinct' is a keyword which also removes duplicates on table
+   >>df1=df.select("age","gender")
+   >>df1.distinct().show()
+   >>df1.distinct().count()
+
+> 'sortBy'
+   >>df.sortBy(df.marks,df.age).show()
+
+> 'orderBy'
+   >>df.orderBy(df.marks,df.age).show()
+
+* example for sortBy and orderBy:
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, lit
+from pyspark.sql.functions import sum,avg,max,min,mean,count
+spark = SparkSession.builder.appName("Spark DataFrames").getOrCreate()
+df = spark.read.options(header='True', inferSchema='True').csv('/FileStore/tables/StudentData.csv')
+df.show()
+# 1
+df.groupBy("course").count().show()
+df.groupBy("course").agg(count("*").alias("total_enrollment")).show()
+# 2
+df.groupBy("course", "gender").agg(count("*").alias("total_enrollment")).show()
+# 3
+df.groupBy("course", "gender").agg(sum("marks").alias("total_marks")).show()
+# 4
+df.groupBy("course", "age").agg(min("marks"), max("marks"), avg("marks")).show()
+
+
+Spark UDF:
+
+> used defined functions --- udf keyword
+Ex 1:
+>>def get_salary(salary):
+      return salary+100
+>>print(get_salary(100))
+>>totudf = udf(lambda x: get_salary(x),IntegerType())
+>>df.withcolumn("total_salary",totudf(df.salary)).show()
+Ex 2:
+>>from pyspark.sql import SparkSession
+>>from pyspark.sql.functions import col, lit, udf
+>>from pyspark.sql.types import IntegerType, DoubleType
+>>spark = SparkSession.builder.appName("Spark DataFrames").getOrCreate()
+>>df = spark.read.options(header='True', inferSchema='True').csv('/FileStore/tables/OfficeData.csv')
+>>df.show()
+>>def get_incr(state, salary, bonus):
+      sum = 0
+      if state == "NY":
+         sum = salary * 0.10
+         sum += bonus * 0.05
+      elif state == "CA":
+           sum = salary * 0.12
+           sum += bonus * 0.03
+      return sum
+>>incrUDF = udf(lambda x,y,z: get_incr(x,y,z), DoubleType())
+>>df.withColumn("increment", incrUDF(df.state, df.salary, df.bonus)).show()
+
+> Syntax to save Data frame in databricks:
+>>df.write.mode("overwrite").save("newfilename")
+
+> Spark Streaming:
+
+> Kafka handles small amount of data to stream data from producer to multiple consumers
+> In kafka, we cannot transform the data during streaming from one end to other end
+> In spark, we can do map transformations during streaming from one end to another end
+> there are two parts:
+  > spark streaming: input data stream is converted to batches of data
+  > spark engine: it processes the data and send the data
+> Discrerized streams (DStreams) provides high level abstraction and represents continous stream of data, broken into batches
+> each batch can be processed using spark RDD operations
+> Dstreams can be created from various data sources like kafka,Flume,HDFS,socket streams etc
+> we can do port based streaming and file based streaming
+> commands are:
+>>from pyspark.streaming import StreamingContext
+>>from pyspark import SparkConf,SparkContext
+>>sc = SparkContext.getOrCreate()
+>>ssc = StreamingContext(sc,20) ---- it holds the data for 20 secs(time line) to process the data
+#file based streaming
+>>rdd = ssc.textFileStream('databricks file path') --- existing contents won't stream 
+#Transformation on data
+>>rdd = rdd.map(lambda x: (x,1) )
+>>rdd=rdd.reduceByKey(lambda x,y: x+y)
+>>rdd.pprint()  ---pprint() --  to print it in the console itself
+#start streaming
+>>ssc.start()
+>>ssc.awaitTerminationOrTimeout(1000000)
+> for every 20 secs, whenever file uploads to databricks, the transformation occurs and it will show o/p
+> this streaming lasts for 10 lakh seconds
+ 
+#port based streaming not possible in data bricks, it needs os layer so, we are doing in vitual machine
+> linux commands are:
+>>pyspark
+>>>from pyspark import SparkContext
+>>>sc=SparkContext.getOrCreate()
+>>>data=[1,2,3,4,5,6,7,8,9,10]
+>>>rdd=sc.parallelize(data) ---- converts list to RDD
+>>>rdd.collect() ---- it shows list 
+
+> we can also write this code in py shell of linux and submit in spark
+>>cat > demo.py
+> Now write pyspark code in demo, for printing we have to use print statement
+>>vim demo.py
+>>spark-submit demo.py ---- to submit the demo.py in spark
+> 'nclk' keyword used to create producer via port and spark code itsself is a consumer
+
+ETL spark:
+
+dbutils.fs.rm("/FileStore/tables", True)
+ 
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import lit, col, explode
+import pyspark.sql.functions as f
+ 
+spark = SparkSession.builder.appName("ETL Pipeline").getOrCreate()
+df = spark.read.text("/FileStore/tables/WordData.txt")
+ 
+df.show()
+
+df.printSchema()
+
+df2 = df.withColumn("splitedData", f.split("value"," "))
+df2.show()
+
+df3 = df2.withColumn("words", explode("splitedData"))
+df3.show()
+
+wordsDF = df3.select("words")
+wordsDF.show()
+
+wordCount = wordsDF.groupBy("words").count()
+wordCount.show()
+
+> creating cluster by connecting google cloud and mysql
+
+driver = "org.postgresql.Driver"
+url = "jdbc:postgresql://database-1.c0sanhw4ymut.us-west-2.rds.amazonaws.com/"
+table = "ahmad_schema_pyspark.WordCount"
+user = "postgres"
+password = ""
+ 
+wordCount.write.format("jdbc").option("driver", driver).option("url",url).option("dbtable", table).option("mode", "append").option("user",user).option("password", password).save()
+ 

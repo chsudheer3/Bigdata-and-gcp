@@ -1,0 +1,173 @@
+
+Apache Hive:
+
+> its kind of DW tool or engine that will run on top of hdfs and mapreduce.
+> it takes advantage of storage system available in hadoop
+> it works on meta store
+> runs select statements on olap data
+> it uses hive query language(HQL)
+> it maintain metadata in rdbms in mysql configuration (or) using 'derby'
+> it doesn't have any resource management system.so,it uses hdfs
+> there are two types of  hive tables:
+  > managed table
+  > external table
+> other main concepts: Partitioning and Bucketing
+> to work with hive, two client tools provided by hive
+  > blive
+  > hive console
+> to maintain metadata, there will be few default configurations(admin)
+> $ hdfs dfs -ls /user/hive/warehouse --> location of hive data
+
+to enter into hive:
+>>$ hive
+> create corresponding database
+
+>>create database gcp;
+>>show databases;
+>>use gcp;
+
+Managed Table
+>>create table student(age int, gender varchar(20),name varchar(20),course varchar(20), roll int,marks int, mail varchar(20))
+>>row format delimited fields terminated by ','
+>>show tables;
+>>desc student;
+
+> to load the data from hadoop to table
+>>load data inpath '/student/StudentData.csv' into table student; (large data)
+>>select * from student limit 10;
+
+> whenever we load the data into hive, default nature of the file will be moved from hadoop
+> if we drop table in hive then it will permanently remove the table and its data from hive warehouse directory in hadoop
+
+> to load the data from local path to the table, we can use base line system
+>>load data local inpath '/home/ubh01/StudentData.csv' into table student; (small data)
+
+External Table
+>>create external table student(age int, gender varchar(20),name varchar(20),course varchar(20), roll int,marks int, mail varchar(20))
+>>row format delimited fields terminated by ','
+> if we drop the table it will not erase in local system or hdfs but large data can't be stored in local system and it is not recommended
+> if we drop the table, it will erase metadata in hive only
+
+Basic commands in Hive (recall):
+
+Table Create Command
+create table student(age int,gender varchar(50),name varchar(50),
+course varchar(50),roll int,marks int,email varchar(50)) 
+row format delimited fields terminated by ',';
+==================================================================================
+create table student(age int,gender varchar(50),name varchar(50),
+course varchar(50),roll int,marks int,email varchar(50)) 
+row format delimited fields terminated by ','
+tblproperties ('skip.header.line.count'='1'); [it avoid first row i.e., column names]
+==================================================================================
+Load Data from Hadoop Path
+load data inpath 'hadoop path' into table student;
+load data inpath '/student/StudentData.csv' into table student;
+==================================================================================
+Load Data from local Path
+load data local inpath '/home/ubh01/Desktop/hive/StudentData.csv' into table student;
+==================================================================================
+create external table student(age int,gender varchar(50),name varchar(50),
+course varchar(50),roll int,marks int,email varchar(50)) 
+row format delimited fields terminated by ','
+tblproperties ('skip.header.line.count'='1');
+==================================================================================
+create external table source(age int,gender varchar(50),name varchar(50),
+course varchar(50),roll int,marks int,email varchar(50)) 
+row format delimited fields terminated by ','
+tblproperties ('skip.header.line.count'='1');
+load data local inpath '/home/ubh01/Desktop/hive/StudentData.csv' into table source;
+
+
+Partitioning and bucketing in hive:
+
+> Partitioning is a technique to organize large tables into smaller logical tables based on the values of specific columns.
+> consider studentData table, partition the data based on courses
+> partitions are created as seperate folders.
+> there are two types of partitioning- static and dynamic
+> Creation of table using partitioning: 
+>>create table sp (age int,gender varchar(50),name varchar(20),roll int, marks int.,email varchar(50))
+>>partitioned by (course varchar(50));
+
+> syntax for static partitioning: 
+> load command is used for bulk insertion
+> after creating table, insert the data into table via select command (beginner stage and small data)
+> insert command is recommended:
+> each partition is stored as a sub folder in folder and we have to do manually by mentioning partition coloumn as 'OOP' or 'cloud'
+>>insert into table sp partition(course='OOP') select age,gender,name,roll,marks,email from source where course='OOP';
+>>insert into table sp partition(course='cloud') select age,gender,name,roll,marks,email from source where course='cloud';
+
+> syntax for dynamic partitioning:
+> In dynamic, we need not mention partitioning course as 'OOP' or 'cloud'.
+> just mention partitioning column, it automatically partitions after processing all insertion commands
+> sub folders for partitioning cloumn will be created automatically
+> insert command is different in dynamic:
+>>set hive.exec.dynamic.partition.mode=nonstrict;
+>>insert into table sp partition(course) select age,gander,name,roll,marks,email where course="OOP";
+>>insert into table sp partition(course) select age,gander,name,roll,marks,email where course="cloud";
+
+Basic commands for partitioning (recall):
+
+create external table source(age int,gender varchar(50),name varchar(50),
+course varchar(50),roll int,marks int,email varchar(50)) 
+row format delimited fields terminated by ','
+tblproperties ('skip.header.line.count'='1');
+load data local inpath '/home/ubh01/Desktop/hive/StudentData.csv' into table source;
+==================================================================================
+create table karthick as select * from source;
+desc karthick;
+select * from karthick;
+==================================================================================
+create table sp (age int,gender varchar(50),name varchar(50),
+roll int,marks int,email varchar(50))
+partitioned by (course varchar(50));
+ 
+insert into table sp partition(course='OOP') select age,gender,name,roll,marks,email from source where course='OOP';
+insert into table sp partition(course='Cloud') select age,gender,name,roll,marks,email from source where course='Cloud';
+insert into table sp partition(course='DSA') select age,gender,name,roll,marks,email from source where course='DSA';
+==================================================================================
+create table dp (age int,gender varchar(50),name varchar(50),
+roll int,marks int,email varchar(50))
+partitioned by (course varchar(50));
+ 
+set hive.exec.dynamic.partition.mode=nonstrict;
+ 
+insert into table dp partition(course) select age,gender,name,roll,marks,email,course from source where course='OOP';
+
+
+> Bucketing:
+
+> it will help you to distribute the data evenly in multiple sub folders or buckets which are of fixed size
+> buckets are created as files inside a main table folder.
+> uses hash keys to distribute the data evenly
+> for example hash key is 3 and primary key is roll which are upto 1 lakh values
+> depends on remainder (ex logic) data distributed evenly in three buckets.
+> it gives load balancing and aiding parellelism
+> if there are unique entities then go for Partitioning
+> if there are similar or common entities then go for Bucketing
+> for example products, productid is primary key: you require all product id for business so use bucketing
+> for example irctc,train number is primary key : you require unique train number for business so use partitioning
+
+> command for bucket:
+>>create table bk(age int,gender varchar(20),name varchar(20),course varchar(20),roll int,marks int,email varchar(20))
+>>clustered by(age) into 2 buckets;
+> here age must be mentioned in fields of both commands unlike partitioning
+> insertion:
+>>insert into table bk select * from source;
+
+Basic commands for Bucketing:
+
+create table bk(age int,gender varchar(50),name varchar(50),
+course varchar(50),roll int,marks int,email varchar(50))
+clustered by(age) into 2 buckets;
+ 
+insert into table bk select * from source;
+==================================================================================
+ 
+create table bk(age int,gender varchar(50),name varchar(50),
+course varchar(50),roll int,marks int,email varchar(50))
+clustered by(age) into 3 buckets;
+ 
+create table bk(age int,gender varchar(50),name varchar(50),
+course varchar(50),roll int,marks int,email varchar(50))
+clustered by(course) into 6 buckets;

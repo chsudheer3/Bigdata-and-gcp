@@ -1,0 +1,279 @@
+IAM:
+
+> Authentication: we are giving dome identity to the user to login into your mysql 
+> Authorization: you have to give permission by means of GRANT command in MySQL
+> In MySQL, we can create two types of users: local user - localhost, public user - '%'(we can access from any host)
+> IAM is PaaS service which allow you to provide the authentication and authorization for the users in cloud level
+> IAM: 'who' can do 'what' access on 'which' resource
+> who - identities may be end user (gmail acc only) or group (collection of individual gmail accounts) or service account
+> user :g suite acc- collection of tools(gmail,drive,forms,hangouts etc) that work together
+> google IAM identities are represented in an email format for the consistency and easy of management purpose
+> service accounts: enables secure interactions b/w applications,services and other resources within gcp ecosystem
+
+> vpc point of view: for each and every network, we can't able to use two IP addresses.
+  > one will be allocated to external communication message
+  > other ip will be allocated to internal communication message
+> for external comm, they call network IP
+> for internal comm, they call broadcast IP
+> within vpc, if you have machines in 100 regions also they can interconnect as they are in same vpc itself
+> subnet: network inside a network, concept of dividing network
+  > it is required to improve quality of service,to improve network optimization,to reduce ip wastage
+  > Certainly! Let’s explore the advantages of creating VMs within a subnet of a Virtual Private Cloud (VPC) compared to creating VMs directly in a VPC without using subnets:
+> advantages of subnetting :  
+  > Network Segmentation:
+    Subnets allow you to segment your network into smaller, more manageable portions. Each subnet can have its own IP address range, which helps organize your resources.
+    Without subnets, all VMs would share the same IP address space, leading to potential IP conflicts and making it harder to manage network traffic.
+  > Security and Isolation:
+    Subnets provide a security boundary. You can apply firewall rules at the subnet level to control traffic between VMs within the same subnet.
+    VMs in different subnets can have different access controls, reducing the risk of unauthorized communication.
+    In contrast, VMs directly in a VPC share the same security context, making it harder to isolate and secure individual resources.
+  > Resource Scaling and Management:
+    Subnets allow you to allocate resources efficiently. For example, you can create separate subnets for different availability zones or regions.
+    When you need to scale your infrastructure, you can easily add new subnets without affecting existing ones.
+    Without subnets, managing resources becomes more complex, especially as your infrastructure grows.
+  > Routing Flexibility:
+    Subnets enable more granular control over routing. You can define custom routes for each subnet.
+    VMs within a subnet can communicate directly without needing external routing.
+    In a flat VPC, all VMs share the same routing table, which might not be ideal for complex network setups.
+  > IP Address Management:
+    Subnets simplify IP address management. You can allocate specific IP ranges to each subnet.
+    Without subnets, you’d have to manage IP addresses manually for each VM, which can be error-prone.
+
+> life cycle management in gcs buckets:
+  > life cycle rules will let you apply actions to the buckets when certain conditions meet.
+  > for ex: switching the object from standard class to folder class.so, the cost will be lesser. 
+
+> GOOGLE CLOUD CLI:
+> '--help' command used to know all commands.
+> if we want to show the objects in the bucket we can use 'ls' or 'ls -l'
+> if we want to upload objects to the bucket using google cloud cli which is installed in system, then
+  change directory 'cd' to that folder in the local system and create a file then command to upload file to bucket is
+  'gsutil cp filename gs://bucketname/' we can do viceversa
+> how to create a folder inside a bucket via cli command:
+  > gsutil cp -r gs://bucketname/foldername/
+  > folder is not considered as object in bucket
+  > it is used for path only
+  > we need to copy 'cp' objects to folder within a bucket or buckets
+> for renaming an object which is in bucket we have to use move 'mv' command
+
+* what is the difference between standard and storage via ACL bucket in google cloud storage
+> In Google Cloud Storage, there are two primary ways to control access to your buckets and objects: Identity and Access Management (IAM) and Access Control Lists (ACLs). Let’s explore the differences between them:
+> IAM : Recommended Method: IAM is the recommended approach for managing access to your resources within Google Cloud.
+Granularity: IAM provides access control across all of Google Cloud and allows you to define fine-grained permissions at various levels (project, bucket, object, etc.).
+Inheritance: Permissions granted to parent resources (e.g., projects) are inherited by child resources (e.g., buckets and objects), making access management easier.
+Managed Folders: IAM permissions can be applied to managed folders.
+Project-Level Access: IAM permissions can be set at the overall project level.
+Security Features: Enables features like domain-restricted sharing, workforce identity federation, and IAM Conditions.
+Best Practice: For most scenarios, use IAM exclusively to manage access.
+Note: Permissions granted by IAM policies do not appear in ACLs, and vice versa.
+> ACLs (Access Control Lists) : Customization: Use ACLs when you need to customize access to individual objects within a bucket.
+Object-Level Control: ACLs can be set directly on individual objects, whereas IAM permissions are granted at the bucket level or higher.
+Interoperability: If you’re using the XML API or require interoperability with Amazon S3, ACLs are useful.
+Tandem with IAM: ACLs and IAM work together—users need relevant permissions from either system to access a bucket or object.
+Disable for Simplicity: To reduce management overhead, consider disabling ACLs and relying solely on IAM.
+Exception: ACLs applied directly to a bucket and certain bucket-level IAM policies interact in specific ways.
+
+# gsutil commands for bucket operations:
+> First things first. In order to get help on gsutil or any gsutil sub commands:
+$ gsutil help
+$ gsutil <command> help
+
+> Now create a bucket named <bucketname>
+> All buckets names share a single global Google namespace and must not be already taken.
+$ gsutil mb gs://<bucketname>
+
+> Upload and download a file with cp
+$ gsutil cp <local_file> gs://<bucketname>/
+$ gsutil cp  gs://<bucketname>/<remote_file> ./
+
+> transfer a file between buckets:
+$ gsutil cp  gs://<bucket_A>/<remote_file> gs://<bucket_B>/
+
+> Create a folder in a bucket with cp
+$ gsutil cp <new_folder> gs://<bucketname>/
+
+> Upload a file to a <new_folder> with cp
+> This will create the folder <new_folder> and at the same time upload the file <local_file> to that folder.
+$ gsutil cp <local_file> gs://<bucketname>/<new_folder>/
+
+> List the folder with ls
+$ gsutil ls gs://<bucketname>/
+
+> Check storage space with du [where the -h flag makes it human readable]
+$ gsutil du -h gs://<bucketname>/
+
+> Copy a local folder and its content to a bucket with cp -r
+$ gsutil cp -r ./<local_folder> gs://<bucketname>/
+
+CLOUD SQL:
+
+> difference b/w cloud spanner and cloud sql is:
+> scalability is possible in cloud spanner i.e.,
+  > Scaling:
+    scaling refers to dynamically adjusting the resources (such as servers, storage, or compute instances) to accommodate changes in demand.
+  > Auto Scaling:
+    Auto scaling is an automated process that dynamically adjusts the number of resources (such as virtual machines or containers) based on the workload or demand.
+    Purpose: It ensures that your application or service can handle varying levels of traffic efficiently without manual intervention.
+    How It Works:
+    When the system detects increased load (e.g., high CPU utilization, increased requests), it automatically adds more instances (scales out).
+    Conversely, during low demand, it reduces the number of instances (scales in) to save costs.
+    Auto scaling maintains a balance between performance and cost-effectiveness.
+    Benefits:
+    Resilience: Auto scaling helps maintain application availability even during traffic spikes.
+    Cost Optimization: You pay only for the resources you need at any given time.
+    Efficiency: Resources are allocated dynamically, avoiding overprovisioning.
+    Example:
+    Imagine an e-commerce website. During holiday sales, traffic surges. Auto scaling ensures additional servers are provisioned to handle the load, and when the rush subsides, excess servers are terminated.
+  > Scale In:
+    Definition: Scaling in refers to reducing the number of instances or resources.
+    Scenario:
+    When demand decreases (e.g., off-peak hours, reduced user activity), the system scales in to optimize resource utilization.
+    Excess instances are removed to save costs.
+    Use Cases:
+    Nighttime: Scale in during nighttime when traffic is low.
+    Weekends: Reduce resources during weekends when usage typically drops.
+    Seasonal Patterns: Adjust capacity based on seasonal trends (e.g., holiday shopping, tax season).
+  > Scale Out:
+    Definition: Scaling out involves adding more instances or resources to accommodate increased demand.
+    Scenario:
+    When traffic spikes (e.g., Black Friday sales, sudden popularity of a video), the system scales out to handle the load.
+    Additional instances are provisioned dynamically.
+    Use Cases:
+    Events: Scale out during events, promotions, or marketing campaigns.
+    Unexpected Traffic: Handle unexpected bursts of traffic (e.g., breaking news, viral content).
+> cloud spanner is a globally distributed horizontally and vertically  scalable, strongly consistent database.
+> Cloud SQL:
+Definition: Cloud SQL is a fully managed relational database service available on GCP.
+Database Engines Supported: Cloud SQL supports popular database engines such as MySQL, PostgreSQL, and SQL Server.
+Managed Service: Google Cloud handles infrastructure, maintenance, backups, and updates.
+Key Features:
+Scalability: Supports vertical scaling (adding more resources) to accommodate increased data.
+High Availability: Automatically replicates data across multiple zones, reducing downtime.
+Security: Provides encryption at rest and in transactions, along with IAM configurations and network isolation.
+Compatibility: Seamlessly migrates from existing MySQL, PostgreSQL, or SQL Server databases.
+
+Cloud Spanner:
+Definition: Cloud Spanner is a flagship database service by GCP.
+Global Distribution: Provides globally distributed, highly scalable, and strongly consistent relational databases.
+Efficiency and Flexibility:
+Combines the efficiency of relational databases with the flexibility of NoSQL databases.
+Supports both vertical scaling (like Cloud SQL) and horizontal scaling across multiple regions.
+Use Cases:
+Ideal for massive-scale opportunities:
+Thousands of writes per second globally.
+Tens of thousands to hundreds of thousands of reads per second globally.
+Best suited for globally distributed applications requiring high throughput and low latency.
+Comparison Summary:
+Cloud SQL:
+Pragmatic choice for applications within a specific region.
+Traditional relational database with ease of management.
+Cloud Spanner:
+Best for globally distributed applications with high scalability needs.
+Combines consistency, scalability, and global availability.
+
+> gcloud config auth list
+> gcloud config list
+> gcloud config list project  --- to check current project
+> Authenticate with your Google Cloud account by running:
+gcloud auth login
+
+> Set your project (if you haven’t already) using:
+gcloud config set project PROJECT_ID
+
+> Create the instance with the following command:
+gcloud compute instances create INSTANCE_NAME \
+    --zone=ZONE \                  --- asia-south1-a
+    --machine-type=MACHINE_TYPE \  --- e2-micro
+    --image-family=IMAGE_FAMILY \  --- ubuntu-2204-lts
+    --image-project=IMAGE_PROJECT  --- ubuntu-os-cloud
+> Delete the instance with the following command:
+gcloud compute instances delete INSTANCE_NAME --zone=ZONE
+
+> Cloud SQL in cli
+> To create a Cloud SQL instance using the Google Cloud CLI, you can use the following command:
+
+gcloud sql instances create INSTANCE_NAME \
+    --database-version=DATABASE_VERSION \
+    --tier=TIER \
+    --region=REGION
+
+> Replace the placeholders with the appropriate values:
+
+INSTANCE_NAME: Choose a name for your Cloud SQL instance.
+DATABASE_VERSION: Specify the database version (e.g., MYSQL_5_7, POSTGRES_13).
+TIER: Select the desired machine type (e.g., db-n1-standard-8).
+REGION: Set the region where you want to create the instance (e.g., us-central1).
+For example, to create a MySQL Second Gen instance named “my-sql-instance” with machine type N1 Standard 8, you can use:
+
+gcloud sql instances create my-sql-instance \
+    --database-version=MYSQL_5_7 \
+    --tier=db-n1-standard-8 \
+    --region=us-central1
+
+
+> for sql instance whose high availability mode enabled, we can create read replica for high availability
+> read replica mysql instance storage inherited from base storage of original mysql instance
+> command to import csv data which is in bucket to sql instance and skipping first row 
+>>gcloud sql import csv my-instance gs://my-bucket/students.csv --database=my_database --table=Students --skip-header
+>>gcloud sql import csv my-instance gs://my-bucket/students.csv --database=my_database --table=Students --skip-leading-rows=1
+
+> BigQuery
+> it is a cloud based modern data warehousing solution that will be easily integrated with so many default google services
+> it is a fully managed, highly scalable, cost effective cloud modern datawarehousing solution designed for business agility
+> decoupled storage & processing
+> federated querying -- with the help of only metadata, we can query the data from external sources without loading to bigquery
+CLI commands for bigquery:
+>>bq ls -- list of datasets
+>>bq ls datasetname  --- list of tables in dataset
+>>bq mk --default_table_expiration 3600 --location=asia-south1 projectname:datasetname --- to create dataset
+>>bq rm -f datasetname  --- to delete dataset with tables
+>>bq mk --table --schema "name:string,age:integer" projectname:datasetname.tablename --- to create table in dataset
+* bq cli purly depends on python
+
+> there are two types of tables in big query
+1.native table: table which will use the inbuilt storage (distributed coalsce storage) to hold the information (actual data and meta data) 
+  because of jupiter architecture and barc scheduler of big query it gives high performance
+2.external table: its a data warehousing tool which will work based on meta data
+  it will hold the meta data (reference link of actual data) of storage information.
+  it will store actual data in external sources like cloud storage,google drive,big table etc
+3.big lake: BigLake is a managed data lake solution by Google Cloud. 
+  It allows you to query data stored in various formats (e.g., Parquet, ORC, Avro) directly from BigQuery.
+  BigLake tables are typically stored in columnar formats, making them efficient for analytics workloads.
+  BigLake tables bridge the gap between structured and unstructured data.  
+  it is like external table with fine grained access via service accounts
+
+CLOUD FUNCTION:
+
+> it's a single purpose micro service
+> event based trigger or invoke
+> deploy code as function
+> Run code in response to events
+> programming languages like python,java,Node js(backend framework of javascript), Go, .Net
+> write your business llogic in multiple programs
+> don't worry about servers on availability and scaling part
+
+
+DATA FLOW:
+> Managed service to work with open source software apache beam
+> 'apache beam' is unified programming model for efficient and portable big data processing pipelines
+> unified API to process both batch and streaming data
+> batch + stream ----> beam
+> languages: python,java,go
+> frameworks or execution engines: spark,flink,apex,google data flow,samza
+> for worker node, we have to create compute instance in compute engine
+> for free tier acc, we have to create service acc in iam for dataflow admin,dataflow worker,editor
+
+COMPOSER:
+> Apache Airflow:
+> Apache Airflow is a platform to programmatically author, schedule, and monitor workflows. 
+  It is open-source and can be used to automate a wide variety of tasks, including data ingestion, data processing, machine learning, and data visualization.
+> Airflow is built on a directed acyclic graph (DAG) model, which allows users to define workflows as a series of tasks that are executed in a specific order. Tasks can be scheduled to run on a regular basis, or they can be triggered by events.
+> Airflow is a popular choice for automating data-intensive workflows. It is used by a wide variety of organizations, including Airbnb, Lyft, and Spotify.
+> Airflow is a powerful tool that can be used to automate a wide variety of tasks. It is easy to use and can be scaled to handle large and complex workflows.
+> Define workflow, schedule the workflow, monitor the workflow
+
+> gcp composer:
+> With Composer, you can easily create and manage Airflow environments. 
+> select composer 2 type of environment
+> create environment by giving compute engine default service acc and grant
+> select small environment resources which will have scheduler,triggerer,web server,worker

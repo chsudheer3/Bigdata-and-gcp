@@ -1,0 +1,158 @@
+Command to import csv file to rdbms table :
+
+load data infile '/home/ubh01/downloads/students.csv' into table tablename 
+fields terminated by ','
+enclosed by '"'
+lines terminated by '\n'
+ignore 1 rows;
+
+csv files for data in git clone:
+
+https://github.com/karthick1808/gcp.git
+
+* we can use sqoop to import data from mysql to hive (flexible schema)
+
+> types of databases available: 
+  > there are 8 types of databases:
+    . NoSQL Database
+    . Relational Database - Normalization,ACID(Atomicity,Consistency,Isolation,Durability) - Quality of Data
+    . etc.,
+
+NoSQL Data base:
+  . There is no need to follow the Normalization(schema flexibility and data model)
+  . Partial ACID Transaction supported
+  . CAP Theorem
+* Relational database supports vertical scaling(increasing the capacity of a server by adding resources)
+* NoSQL follows distributed computing like hadoop so, it supports horizantal scaling(adding a new nosql server in architecture or system)
+Horizontal scaling:
+> to handle increasing load and distributing the work load across multiple devices or servers to improve performance and redundancy
+
+CAP Theorem provides:
+> consistency: all clients see the same view of data even right after update or delete
+> availability: all clients can find a replica of data (2-1), even in case of partial node failures
+> partitioning: the system continues to work as expected, even in presence of partial network failure
+* As per CAP Theorem 3 out of 2 in above conditions must satisfy for NoSQL
+
+> Types of NoSQL:
+  . Key-value : looks like python dictionary
+  . Document based database : JSON based database
+  . Columnar family database
+  . Graph based database
+> NoSQL offers flexibility in handling semi-structured and un-structured data which doesn't have fixed schema
+
+Apache Hbase:
+
+> works on NoSQL Database
+> works on top of hadoop infrastructure
+> Availability in CAP as optional parameters where as consistency and partitioning are mandatory
+> Hbase works on Columnar family database
+> https://www.cloudduggu.com/hbase/ for detailed matter
+
+> General commands to start Hbase:
+>>./hadoop-2.7.1/sbin/start-all.sh
+>>jps
+>>./hbase-1.1.2/bin/start-hbase.sh 
+>>jps
+here 'HMaster is added' to existing 
+>>hbase shell (changing directory to hbase)
+>>status -it will give status about hbase cluster
+>>version -to verify hbase running successfully or not
+>>whoami -display the current user who is accessing the shell
+>>table_help -helps in reading syntax in hbase shell
+>>quit
+>> Hbase shell is a client tool to access our corresponding architecture.
+
+* Apache zookeeper:
+> to run the hbase it needs computing power and storage that is provided by apache zookeeper it is a cluster management or coordination software
+> Apache ZooKeeper is a high-performance, centralized, multi coordination service system for distributed applications, which provides
+  a distributed synchronization and group service to HBase.
+> It also provides an API using which a user can coordinate with the Master server.
+
+General commands:
+
+> table creation
+>>t = create 'tablename','names.of.columnarfamilies(cf)'
+> to show tables:
+>>list
+> to describe table
+>>describe 'tablename'
+> there are features like timestamp(TTL- how much time the data can be stays for ex: TTL='forever' means data stays forever),versions,blocksize
+> to select all entities of a table:
+>>scan 'tablename'
+> to get particular entity of a table:
+>>get
+> to insert the entites into table:
+>>put 'tablename','rowkey', 'cfname:first.columnname','value'
+ex: >>put 'employee','00001','personal:name','john'
+    >>put 'employee','00001','personal:phone','415-111-1234'
+    >>put 'employee','00001','office:phone','415-212-1234'
+    >>put 'employee','00001','office:address','1021 market st'
+table looks like:
+_______________________________________________________________________
+         | columnar family-personal     |       columnar family-office
+_______________________________________________________________________
+row key  |      Name  | Resdphone       |   phone       |    Address   
+         |            |                 |               |   
+
+> how to get a particular entitity using row key:
+>>get 'tablename','entity-rowkey'
+
+> hbase supports almost all datatypes -string,integer,float
+
+> to delete an entity:
+>>delete 'tablename','rowkey','cf(office):value(address)'
+
+>to delete entities of a rowkey:
+>>deleteall 'tablename','rowkey'
+
+>to delete all contents of table:
+>>truncate 'tablename'
+
+> there are enable and disable commands also there for a table in hbase like:
+>>enable 'tablename'
+>>disable 'tablename'
+
+Apache kafka:
+
+> it is a standalone software that supported for two types of cluster managements they are:
+  > kafka with zookeeper
+  > kafka with KRaft
+> command to change directory to kafka:
+>>cd kafka_2.12-2.8.0/
+
+> to display list of files in kafka:
+>>/kafka_2.12-2.8.0$ ls
+
+> zookeerper.connect= localhost:2181 (to make communication with kafka)
+
+> Configuration files:
+>>/kafka/config/server.properties
+>>/kafka/config/zookeeper.properties
+
+> to start script for kafka and zookeeper:
+>>zookeeper-server-start.sh 
+>>kafka-server-start.sh
+
+> command to start zookeeper and kafka(server) service after cd changed to kafka is:
+>>bin/zookeeper-server-start.sh config/zookeeper.properties &
+>>bin/kafka-server-start.sh config/server.properties &
+
+> to check whether services are running:
+>>/kafka_2.12_2.8.0$ jobs
+
+> now verify again jps command, it has to show:
+  >quor-umpeermain
+  >kafka
+  >jps
+
+> to create a topic in kafka:
+>>/kafka_2.12_2.8.0$ bin/kafka-topics.sh --create --topic gcp --bootstrap-server localhost:9092
+
+> to create a event(producer) in created topic gcp :
+>>bin/kafka-console-producer.sh --topic gcp --bootstrap-server localhost:9092
+..>this is my first event
+
+> now open new terminal and create a consumer event :
+> start kafka service in new terminal
+>>>>bin/kafka-console-consumer.sh --topic gcp --bootstrap-server --from-beginning localhost:9092
+..>this is my first event

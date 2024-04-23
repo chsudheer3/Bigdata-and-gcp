@@ -1,0 +1,113 @@
+Map reduce:
+
+data splitting
+key value pairing
+sorting and shuffling
+reduce
+output
+
+Jar file:
+Executable file in java, cannot view source code
+
+To start hadoop, command is :
+$ ./hadoop-2.7.1/sbin/start-all.sh
+
+To create a file and to write the content in it, the command is:
+$ cat > words.txt
+hello
+hi
+how are you
+untill ctrl+D
+ 
+To access jar functions like wordcount etc, the command is:
+$ hadoop jar hadoop-2.7.1/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.1.jar wordcount /mapreduceinput/words.txt /mapreduceoutput
+
+To display output after running wordcount(map reduce):
+$ hadoop fs cat /mapreduceoutput/part*
+
+output directory must be new one, we should not give existing directory or file
+
+* first tool: Apache sqoop:
+
+> command line interface (cli) tool that will helps to import and export bulk data from rdbms to hadoop or hive
+> sqoop is a tool that depends on map reduce to perform the job,it take the advantage of distributed computing.
+> It acts as intermediate tool for import and export operations.
+> Practical for sqoop in mysql application:
+
+create database gcp;
+use gcp;
+create table student (
+age int,
+gender varchar(200),
+name varchar(200),
+course varchar(200),
+roll varchar(200),
+marks int,
+email varchar(200));
+
+after data importing
+
+in Terminal:
+
+$ sqoop version
+> Sqoop 1.4.7
+
+To check the availability of table:
+$ sqoop list-tables --connect jdbc:mysql://localhost:3306/gcp --username root --password password
+
+Now load the data into hdfs:
+$ sqoop import --connect jdbc:mysql://localhost:3306/gcp --username root --password password --table StudentData --target-dir /sqoopdata 
+
+It will through error as No Primary key in table
+Now we cannot edit table as it is already imported so
+
+$ sqoop import --connect jdbc:mysql://localhost:3306/gcp --username root --password password --table StudentData --target-dir /sqoopdata -m 1
+> -m 1 means single mapper (no parellel processing)
+> password not to be visible or cannot contain some ! characters means use "-P" instead of --password
+> It will ask seperatly to enter password
+
+To display contents after importing
+$ hdfs dfs -ls /sqoopdata
+$ hdfs dfs -cat/sqoopdata/part*
+
+> The above process all happens within a system using data from local file
+> we can go through virtual server connectivity also in Mysql using aws or google cloud
+
+> many bigdata file formats like csv,tsv,avro,parquet,json,orc,sequence files
+> parquet,orc,avro stores compressed data
+> sqoop supports all file formats.
+
+How to include where clause while importing data (table) to hdfs using sqoop is:
+
+sqoop import --connect jdbc:mysql://localhost:3306/gcp --username root --password password --table StudentData --target-dir /sqoopdata -m 1
+> studentData has no primary key, so we use mapper -m 1
+
+sqoop import --connect jdbc:mysql://localhost:3306/gcp --username root --password password --table customer --target-dir /sqoopdata1
+> customer table has primary key which enables parellel processing in mapreduce
+
+sqoop import --connect jdbc:mysql://localhost:3306/gcp --username root --password password --table customer --where "country='US'" --target-dir /sqoopdata2
+
+we can also include query of any condition in sqoop command:
+
+sqoop import --connect jdbc:mysql://localhost:3306/gcp --username root --password password  --query "select * from customer where country='UK'
+and \$CONDITIONS" --split-by cust_id  --target-dir /sqoopdata2
+
+> --split-by is used to specify column(primary key) by which the import or export operation should be divided into ranges
+> \$CONDITIONS is token used as a placeholder when importing data, when sqoop performs parellel import, additional where clauses will be created for each
+  split to efficiently divide data, by using this token sqoop dynamically replaces with given conditions in where clause to split data for parellel processing.
+
+we can also import data as textfile in hdfs:
+
+sqoop import --connect jdbc:mysql://localhost:3306/gcp --username root --password password --query "select * from customer 
+where country='UK' and \$CONDITIONS" --split-by cust_id  --target-dir /sqoopdata4 --as-textfile
+
+How to append modifications for a table which is already in hdfs:
+
+sqoop import --connect jdbc:mysql://localhost:3306/gcp --username root --password password --query "select * from customer 
+where country='UK'and \$CONDITIONS" --split-by cust_id  --target-dir /incr --incrementalappend --check-column cust_id --last 110
+
+> consider customer table is modified by adding 5 values from id110
+
+How to export data in hdfs to local:
+
+sqoop export --connect jdbc:mysql://localhost:3306/gcp --username root --password password --table customer --export-dir /abhishek(in hdfs)
